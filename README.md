@@ -1,0 +1,2 @@
+# school-activities
+type beat
