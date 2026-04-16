@@ -28,8 +28,14 @@ void solve(){
         }
         pref.push_front(i);
         for(auto u: qu[i]){
-            
+            auto it = upper_bound(pref.begin(),pref.end(),u);
+            for(auto pos: mp[{i,u}]){
+                ans[pos]=it-pref.begin();
+            }
         }
+    }
+    for(int i = 0; i<q; i++){
+        cout<<ans[i]<<"\n";
     }
 }
 

@@ -8,8 +8,8 @@ using ll = long long;
 
 struct Node {
     ll sum,len;
-    Node operator+(Node a) {
-        return {a.sum+sum,a.len+len};
+    Node operator+(Node a){
+        return {sum+a.sum,len+a.len};
     }
 };
 
@@ -34,14 +34,14 @@ struct Segtree {
             seg[o]={arr[l],1};
             return;
         }
-        int mid = (l+r)/2, lc=o*2, rc=o*2+1;
+        int mid = (l+r)/2, lc = o*2, rc = o*2+1;
         build(lc,l,mid);
         build(rc,mid+1,r);
         seg[o]=seg[lc]+seg[rc];
     }
     Node value(Node x, Flag fl){
-        if(fl.setv!=-1) return {x.len*fl.setv+x.len*fl.addv,x.len};
-        return {x.len*fl.addv+x.sum,x.len};
+        if(fl.setv==-1) return {x.sum+fl.addv*x.len,x.len};
+        return {x.len*fl.setv+fl.addv*x.len,x.len};
     }
     void propagate(int o){
         int lc = o*2, rc = o*2+1;
@@ -50,28 +50,28 @@ struct Segtree {
         flag[rc]=flag[o]+flag[rc];
         flag[o]={-1,0};
     }
-    void update(int o, int l, int r, int ql, int qr, Flag fl){
+    void update(int o, int l, int r, int ql, int qr, Flag val){
         if(ql<=l && r<=qr){
-            flag[o]=fl+flag[o];
+            flag[o]=val+flag[o];
             return;
         }
         propagate(o);
-        int mid = (l+r)/2, lc=o*2, rc=o*2+1;
-        if(ql<=mid) update(lc,l,mid,ql,qr,fl);
-        if(qr>=mid+1) update(rc,mid+1,r,ql,qr,fl);
+        int mid = (l+r)/2, lc = o*2, rc = o*2+1;
+        if(ql<=mid) update(lc,l,mid,ql,qr,val);
+        if(qr>mid) update(rc,mid+1,r,ql,qr,val);
         seg[o]=value(seg[lc],flag[lc])+value(seg[rc],flag[rc]);
     }
-    void update(int ql, int qr, Flag fl){
-        update(1,0,n-1,ql,qr,fl);
+    void update(int ql, int qr, Flag val){
+        update(1,0,n-1,ql,qr,val);
     }
     Node query(int o, int l, int r, int ql, int qr, Flag sum){
         sum=sum+flag[o];
         if(ql<=l && r<=qr){
             return value(seg[o],sum);
         }
-        int mid = (l+r)/2, lc=o*2, rc=o*2+1;
+        int mid = (l+r)/2, lc = o*2, rc = o*2+1;
         if(qr<=mid) return query(lc,l,mid,ql,qr,sum);
-        if(ql>=mid+1) return query(rc,mid+1,r,ql,qr,sum);
+        if(ql>mid) return query(rc,mid+1,r,ql,qr,sum);
         return query(lc,l,mid,ql,qr,sum)+query(rc,mid+1,r,ql,qr,sum);
     }
     Node query(int ql, int qr){
