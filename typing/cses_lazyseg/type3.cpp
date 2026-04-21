@@ -55,6 +55,7 @@ struct Segtree {
             flag[o]=val+flag[o];
             return;
         }
+        propagate(o);
         int lc = o*2, rc = o*2+1, mid = (l+r)/2;
         if(ql<=mid) update(lc,l,mid,ql,qr,val);
         if(qr>mid) update(rc,mid+1,r,ql,qr,val);
