@@ -9,7 +9,7 @@ using ll = long long;
 struct Node {
     ll sum,len;
     Node operator+(Node a){
-        return {sum+a.sum,len+a.len};
+        return {a.sum+sum,a.len+len};
     }
 };
 
@@ -22,7 +22,7 @@ struct Flag {
 };
 
 struct Segtree {
-    ll n;
+    int n;
     vector<int>arr;
     vector<Node>seg;
     vector<Flag>flag;
@@ -30,7 +30,7 @@ struct Segtree {
         build(1,0,n-1);
     }
     void build(int o, int l, int r){
-        if(
+        if(l==r){
             seg[o]={arr[l],1};
             return;
         }
@@ -40,7 +40,7 @@ struct Segtree {
         seg[o]=seg[lc]+seg[rc];
     }
     Node value(Node a, Flag fl){
-        if(fl.setv!=-1) return {fl.setv*a.len+fl.addv*a.len,a.len};
+        if(fl.setv!=-1) return {a.len*fl.setv+a.len*fl.addv,a.len};
         return {a.len*fl.addv+a.sum,a.len};
     }
     void propagate(int o){
@@ -78,7 +78,7 @@ struct Segtree {
         return query(1,0,n-1,ql,qr,{-1,0});
     }
 };
-
+ 
 void solve(){
     int n,q;
     cin>>n>>q;
