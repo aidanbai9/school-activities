@@ -4,23 +4,27 @@ using namespace std;
 
 using ll = long long;
 
+using i128 = __int128_t;
+
 #define sz(x) int(std::size(x))
 
 mt19937_64 cowng(chrono::steady_clock::now().time_since_epoch().count());
 
-constexpr ll mod = 1e9+7;
+constexpr ll mod = 1e18+7;
 
 ll query1(vector<int>arr, int qv){
     int n=sz(arr);
     auto rint = [&](ll l, ll r) -> ll {
         return cowng()%(r-l+1)+l;
     };
-    map<int,vector<int>>ele;
+    vector<vector<int>>ele(n);
     for(int i = 0; i<n; i++){
         ele[arr[i]].push_back(i);
     }
     vector<ll>value(n);
-    for(auto [a,b]: ele){
+    for(int a = 0; a<n; a++){
+        auto b=ele[a];
+        if(sz(b)==0) continue;
         ll sumv=0;
         vector<ll>hsh;
         for(int i = 0; i<min(sz(b),qv-1); i++){
@@ -54,6 +58,7 @@ ll query1(vector<int>arr, int qv){
         pcnt[psum[i+1]]++;
     }
     return ans;
+    return 1;
 }
 
 ll query2(vector<int>arr, int qv){
@@ -71,54 +76,73 @@ ll query2(vector<int>arr, int qv){
     for(int i = 0; i<n; i++){
         psum.push_back((psum.back()+vals[arr[i]])%mod);
     }
-    map<ll,int>pcnt;
+    vector<int>cnt(n,0),cnt2(n,0);
+    int sz1=0,sz2=0;
     int lv=0,rv=0;
-    map<int,int>cnt,cntv;
-    ll val=0,ans=0;
-    auto cval = [&](int idx) -> ll {
-        return (qv)*psum[idx+1]-val*idx;
+    ll sum=0;
+    map<ll,int>pcnt;
+    auto valv = [&](int idx) -> ll {
+        return ((i128(psum[idx])*qv-i128(sum)*idx)%i128(mod)+mod)%mod;
     };
-    cout<<"\n";
+    auto addv = [&](int idx) -> void {
+        pcnt[valv(idx)]++;
+    };
+    ll ans=0;
     for(int i = 0; i<n; i++){
         cnt[arr[i]]++;
-        cout<<i<<" "<<sz(cnt)<<"\n";
-        if(cnt[arr[i]]==1) val=(val+vals[arr[i]])%mod;
-        cout<<i<<" "<<sz(cnt)<<"\n";
-        if(sz(cnt)>qv){
-            pcnt.clear();
-            while(sz(cnt)>qv){
+        cnt2[arr[i]]++;
+        if(cnt[arr[i]]==1){
+            sz1++;
+            sum=(sum+vals[arr[i]])%mod;
+        }
+        if(cnt2[arr[i]]==1){
+            sz2++;
+        }
+        while(sz2>=qv){
+            cnt2[arr[rv]]--;
+            if(cnt2[arr[rv]]==0){
+                sz2--;
+            }
+            addv(rv);
+            rv++;
+        }
+        if(sz1>qv){
+            while(sz1>qv){
                 cnt[arr[lv]]--;
-                if(lv<rv) cntv[arr[lv]]--;
                 if(cnt[arr[lv]]==0){
-                    cnt.erase(arr[lv]);
-                    val=(val-vals[arr[i]])%mod;
+                    sz1--;
+                    sum=(sum-vals[arr[lv]])%mod;
                 }
                 lv++;
             }
-            rv=lv;
+            pcnt.clear();
+            for(int j = lv; j<rv; j++){
+                addv(j);
+            }
         }
-        while(cntv[arr[rv]]<cnt[arr[rv]]){
-            pcnt[cval(rv)]++;
-            cntv[arr[rv]]++;
-            rv++;
-        }
-        if(cnt[arr[rv]]==0) cnt.erase(arr[rv]);
-        cout<<sz(cnt)<<" "<<qv<<" "<<i<<" "<<lv<<" "<<rv<<"\n";
-        ans+=pcnt[i];
+        ans+=pcnt[valv(i+1)];
     }
     return ans;
+    return 1;
 }
 
 void solve(){
+    auto t1=chrono::steady_clock::now();
     int n,k;
     cin>>n>>k;
     vector<int>arr(n);
-    for(int i = 0; i<n; i++) cin>>arr[i];
+    for(int i = 0; i<n; i++){
+        cin>>arr[i];
+        arr[i]--;
+    }
     vector<int>qu(k);
     for(int i = 0; i<k; i++) cin>>qu[i];
     for(int i = 0; i<k; i++){
         cout<<query1(arr,qu[i])<<" "<<query2(arr,qu[i])<<"\n";
     }
+    auto t2=chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1);
+    //cout<<duration.count()<<"microseconds\n";
 }
 
 int main(){
