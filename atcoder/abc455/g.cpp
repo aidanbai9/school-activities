@@ -4,6 +4,8 @@ using namespace std;
 
 using ll = long long;
 
+using ull = unsigned long long;
+
 using i128 = __int128_t;
 
 #define sz(x) int(std::size(x))
@@ -11,6 +13,51 @@ using i128 = __int128_t;
 mt19937_64 cowng(chrono::steady_clock::now().time_since_epoch().count());
 
 constexpr ll mod = 1e18+7;
+
+ull Hash(ll x){
+    ull val=x+0x9437832857387583;
+    val=(val^(val>>30))*0x2375838572954737;
+    val=(val^(val>>27))*0x2859237465682645;
+    return val^(val>>31);
+}
+
+struct Fastmap {
+    int n;
+    vector<int>arr;
+    vector<ll>val;
+    vector<int>keys;
+    Fastmap():n(4000037),arr(n,0),val(n,-1){};
+    int idxv(ll x){
+        ull hsh=Hash(x)%n;
+        int cnt=0;
+        while(val[hsh]!=-1 && val[hsh]!=x){
+            cnt++;
+            hsh=(hsh+cnt)%n;
+        }
+        if(val[hsh]==-1){
+            keys.push_back(hsh);
+            val[hsh]=x;
+        }
+        return hsh;
+    }
+    void setv(ll idx, ll val){
+        int i=idxv(idx);
+        arr[i]=val;
+    }
+    void updv(ll idx, ll val){
+        int i=idxv(idx);
+        arr[i]+=val;
+    }
+    int getv(ll idx){
+        return arr[idxv(idx)];
+    }
+    void clear(){
+        for(auto u: keys){
+            arr[u]=0,val[u]=-1;
+        }
+        keys.clear();
+    }
+};
 
 ll query1(vector<int>arr, int qv){
     int n=sz(arr);
@@ -42,20 +89,20 @@ ll query1(vector<int>arr, int qv){
     for(auto u: value) psum.push_back((psum.back()+u)%mod);
     vector<int>cnt(n);
     int lv=0;
-    map<ll,int>pcnt;
+    Fastmap cntp;
     ll ans=0;
-    pcnt[0]=1;
+    cntp.setv(0,1);
     for(int i = 0; i<n; i++){
         cnt[arr[i]]++;
         if(cnt[arr[i]]==qv+1){
             while(cnt[arr[i]]==qv+1){
                 cnt[arr[lv]]--;
-                pcnt[psum[lv]]--;
+                cntp.updv(psum[lv],-1);
                 lv++;
             }
         }
-        ans+=pcnt[psum[i+1]];
-        pcnt[psum[i+1]]++;
+        ans+=cntp.getv(psum[i+1]);
+        cntp.updv(psum[i+1],1);
     }
     return ans;
     return 1;
@@ -80,12 +127,12 @@ ll query2(vector<int>arr, int qv){
     int sz1=0,sz2=0;
     int lv=0,rv=0;
     ll sum=0;
-    map<ll,int>pcnt;
+    Fastmap cntp;
     auto valv = [&](int idx) -> ll {
         return ((i128(psum[idx])*qv-i128(sum)*idx)%i128(mod)+mod)%mod;
     };
     auto addv = [&](int idx) -> void {
-        pcnt[valv(idx)]++;
+        cntp.updv(valv(idx),1);
     };
     ll ans=0;
     for(int i = 0; i<n; i++){
@@ -115,12 +162,12 @@ ll query2(vector<int>arr, int qv){
                 }
                 lv++;
             }
-            pcnt.clear();
+            cntp.clear();
             for(int j = lv; j<rv; j++){
                 addv(j);
             }
         }
-        ans+=pcnt[valv(i+1)];
+        ans+=cntp.getv(valv(i+1));
     }
     return ans;
     return 1;
