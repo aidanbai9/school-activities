@@ -10,18 +10,15 @@ using ll = long long;
 #include <stdlib.h>
 
 #define fail(s, x...) do { \
-fprintf(stderr, s "\n", ## x); \
-exit(1); \
-} while(0)
+		fprintf(stderr, s "\n", ## x); \
+		exit(1); \
+	} while(0)
 
 #define MAX_A 50000
 #define MAX_B 50000
 #define MAX_T 1000000
 
 int an,bn,n;
-
-template <typename T>
-using min_pq = priority_queue<T,vector<T>,std::greater<T>>;
 
 int oned(vector<int>&vals, vector<int>arr){
     sort(vals.begin(),vals.end());
@@ -33,7 +30,7 @@ int oned(vector<int>&vals, vector<int>arr){
             num++;
         }
         if(num==0) return -1;
-        if(sz(vals)-i>ll(cnt)*num) cnt++;
+        if(sz(vals)-i>cnt*num) cnt++;
     }
     if(sz(vals)==0) return 0;
     return cnt;
@@ -67,25 +64,30 @@ int putaway(int A, int B, int T, int X[], int Y[], int W[], int S[]) {
         return oned(vala,arr);
     }
     auto check = [&](int x) -> bool {
+        set<pair<int,int>>s;
         vector<int>nbrr;
-        min_pq<pair<int,int>>cand;
+        set<pair<int,int>>cand;
         vector<int>crr=arr;
-        int num=0;
-        int cnt=0;
         for(int i = sz(vals)-1; i>=0; i--){
             while(sz(crr) && crr.back()>=vals[i].first){
                 crr.pop_back();
-                num++;
+                s.insert({0,sz(crr)});
             }
-            if(num==0){
+            if(sz(s)==0){
                 nbrr.push_back(vals[i].second);
                 continue;
             }
-            cand.push({vals[i].second,vals[i].first});
-            if((sz(vals)-i-sz(nbrr))>(ll(x)*num)){
-                auto it = cand.top();
-                cand.pop();
-                nbrr.push_back(it.first);
+            auto it = s.begin();
+            auto [val,idx] = (*it);
+            if(val>=x){
+                it = cand.begin();
+                nbrr.push_back((*it).first);
+                cand.erase(it);
+                cand.insert({vals[i].second,vals[i].first});
+            }else{
+                s.erase(it);
+                cand.insert({vals[i].second,vals[i].first});
+                s.insert({val+1,idx});
             }
         }
         int ansv=oned(nbrr,brr);
@@ -95,12 +97,12 @@ int putaway(int A, int B, int T, int X[], int Y[], int W[], int S[]) {
 
     int l=0, r=T;
     while(l<r-1){
-    int mid = (l+r)/2;
-    if(check(mid)){
-    r=mid;
-    }else{
-    l=mid;
-    }
+        int mid = (l+r)/2;
+        if(check(mid)){
+            r=mid;
+        }else{
+            l=mid;
+        }
     }
     return r;
 }

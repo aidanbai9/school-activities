@@ -29,22 +29,46 @@ long long gcd2(long long X, long long Y) {
 
 constexpr int maxn = 105;
 
-vector<vector<ll>>vals(maxn,vector<ll>(maxn,0));
+
+struct Segtree {
+	int n;
+	vector<ll>seg;
+	Segtree(int nv):n(nv),seg(4*n,0){};
+	void update(int o, int l, int r, int x, ll val){
+		if(l==r){
+			seg[o]=val;
+			return;
+		}
+		int lc = o*2, rc = o*2+1, mid = (l+r)/2;
+		if(x<=mid) update(lc,l,mid,x,val);
+		else update(rc,mid+1,r,x,val);
+		seg[o]=gcd(seg[lc],seg[rc]);
+	}
+	void update(int x, ll val){ update(1,0,n-1,x,val); }
+	ll query(int o, int l, int r, int ql, int qr){
+		if(ql<=l && r<=qr) return seg[o];
+		int lc = o*2, rc = o*2+1, mid = (l+r)/2;
+		if(qr<=mid) return query(lc,l,mid,ql,qr);
+		else if(ql>mid) return query(rc,mid+1,r,ql,qr);
+		return gcd(query(lc,l,mid,ql,qr),query(rc,mid+1,r,ql,qr));
+	}
+	ll query(int ql, int qr){ return query(1,0,n-1,ql,qr); }
+};
+
+vector<Segtree>seg;
 
 void init(int R, int C) {
-    /* ... */
+	for(int i = 0; i<R; i++) seg.push_back(Segtree(C));
 }
 
 void update(int P, int Q, long long K) {
-    vals[P][Q]=K;
+	seg[P].update(Q,K);
 }
 
 long long calculate(int P, int Q, int U, int V) {
     ll gcdv=0;
     for(int i = P; i<=U; i++){
-        for(int j = Q; j<=V; j++){
-            gcdv=gcd(gcdv,vals[i][j]);
-        }
+		gcdv=gcd(gcdv,seg[i].query(Q,V));
     }
     return gcdv;
 }

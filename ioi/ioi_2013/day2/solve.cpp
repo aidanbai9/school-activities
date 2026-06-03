@@ -10,9 +10,9 @@ using ll = long long;
 #include <stdlib.h>
 
 #define fail(s, x...) do { \
-fprintf(stderr, s "\n", ## x); \
-exit(1); \
-} while(0)
+		fprintf(stderr, s "\n", ## x); \
+		exit(1); \
+	} while(0)
 
 #define MAX_A 50000
 #define MAX_B 50000
@@ -39,6 +39,10 @@ int oned(vector<int>&vals, vector<int>arr){
     return cnt;
 }
 
+bool on(int i, int j){
+    return i&(1<<j);
+}
+
 int putaway(int A, int B, int T, int X[], int Y[], int W[], int S[]) {
     an=A,bn=B,n=T;
     for(int i = 0; i<an; i++) X[i]--;
@@ -55,54 +59,21 @@ int putaway(int A, int B, int T, int X[], int Y[], int W[], int S[]) {
             if((sz(arr)==0 || W[i]>arr.back()) && (sz(brr)==0 || S[i]>brr.back())) return -1;
         }
     }
-    sort(vals.begin(),vals.end());
-    if(an==0){
-        vector<int>valb;
-        for(auto [a,b]: vals) valb.push_back(b);
-        return oned(valb,brr);
-    }
-    if(bn==0){
-        vector<int>vala;
-        for(auto [a,b]: vals) vala.push_back(a);
-        return oned(vala,arr);
-    }
-    auto check = [&](int x) -> bool {
-        vector<int>nbrr;
-        min_pq<pair<int,int>>cand;
-        vector<int>crr=arr;
-        int num=0;
-        int cnt=0;
-        for(int i = sz(vals)-1; i>=0; i--){
-            while(sz(crr) && crr.back()>=vals[i].first){
-                crr.pop_back();
-                num++;
-            }
-            if(num==0){
-                nbrr.push_back(vals[i].second);
-                continue;
-            }
-            cand.push({vals[i].second,vals[i].first});
-            if((sz(vals)-i-sz(nbrr))>(ll(x)*num)){
-                auto it = cand.top();
-                cand.pop();
-                nbrr.push_back(it.first);
+    int minans=1e9;
+    for(int i = 0; i<(1<<T); i++){
+        vector<int>narr,nbrr;
+        for(int j = 0; j<T; j++){
+            if(on(i,j)){
+                narr.push_back(W[j]);
+            }else{
+                nbrr.push_back(S[j]);
             }
         }
-        int ansv=oned(nbrr,brr);
-        if(ansv==-1) return 0;
-        return ansv<=x;
-    };
-
-    int l=0, r=T;
-    while(l<r-1){
-    int mid = (l+r)/2;
-    if(check(mid)){
-    r=mid;
-    }else{
-    l=mid;
+        int aans=oned(narr,arr),bans=oned(nbrr,brr);
+        if(aans==-1 || bans==-1) continue;
+        minans=min(minans,max(aans,bans));
     }
-    }
-    return r;
+    return minans;
 }
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
 static int X[MAX_A];
