@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "ying qi orz..."
+echo "debug"
 
 g++ -std=c++17 -o main type3.cpp &
 g++ -std=c++17 -o solve type2.cpp &
